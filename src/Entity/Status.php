@@ -2,13 +2,13 @@
 
 namespace App\Entity;
 
-use App\Repository\ThemeRepository;
+use App\Repository\StatusRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: ThemeRepository::class)]
-class Theme
+#[ORM\Entity(repositoryClass: StatusRepository::class)]
+class Status
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -18,7 +18,7 @@ class Theme
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\ManyToMany(targetEntity: Quiz::class, mappedBy: 'themes')]
+    #[ORM\OneToMany(mappedBy: 'status', targetEntity: Quiz::class)]
     private Collection $quizzes;
 
     public function __construct()
@@ -55,7 +55,7 @@ class Theme
     {
         if (!$this->quizzes->contains($quiz)) {
             $this->quizzes->add($quiz);
-            $quiz->addTheme($this);
+            $quiz->setStatus($this);
         }
 
         return $this;
@@ -64,7 +64,10 @@ class Theme
     public function removeQuiz(Quiz $quiz): static
     {
         if ($this->quizzes->removeElement($quiz)) {
-            $quiz->removeTheme($this);
+            // set the owning side to null (unless already changed)
+            if ($quiz->getStatus() === $this) {
+                $quiz->setStatus(null);
+            }
         }
 
         return $this;
