@@ -35,9 +35,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'creator', targetEntity: Quiz::class)]
     private Collection $quizzes;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Rating::class, orphanRemoval: true)]
+    private Collection $ratings;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Attempt::class, orphanRemoval: true)]
+    private Collection $attempts;
+
     public function __construct()
     {
         $this->quizzes = new ArrayCollection();
+        $this->ratings = new ArrayCollection();
+        $this->attempts = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -150,6 +158,66 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($quiz->getCreator() === $this) {
                 $quiz->setCreator(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Rating>
+     */
+    public function getRatings(): Collection
+    {
+        return $this->ratings;
+    }
+
+    public function addRating(Rating $rating): static
+    {
+        if (!$this->ratings->contains($rating)) {
+            $this->ratings->add($rating);
+            $rating->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRating(Rating $rating): static
+    {
+        if ($this->ratings->removeElement($rating)) {
+            // set the owning side to null (unless already changed)
+            if ($rating->getUser() === $this) {
+                $rating->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Attempt>
+     */
+    public function getAttempts(): Collection
+    {
+        return $this->attempts;
+    }
+
+    public function addAttempt(Attempt $attempt): static
+    {
+        if (!$this->attempts->contains($attempt)) {
+            $this->attempts->add($attempt);
+            $attempt->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAttempt(Attempt $attempt): static
+    {
+        if ($this->attempts->removeElement($attempt)) {
+            // set the owning side to null (unless already changed)
+            if ($attempt->getUser() === $this) {
+                $attempt->setUser(null);
             }
         }
 
